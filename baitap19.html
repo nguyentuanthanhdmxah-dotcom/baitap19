@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Card Flip Game</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #f4f4f4;
+}
+
+h1 {
+    margin-top: 20px;
+}
+
+.game-info {
+    margin: 10px;
+}
+
+.grid {
+    display: grid;
+    gap: 10px;
+    padding: 20px;
+}
+
+/* Desktop: 4 cột */
+@media (min-width: 600px) {
+    .grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* Mobile: 2 cột */
+@media (max-width: 599px) {
+    .grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.card {
+    width: 100%;
+    height: 100px;
+    perspective: 1000px;
+}
+
+.card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.5s;
+    cursor: pointer;
+}
+
+.card.flip .card-inner {
+    transform: rotateY(180deg);
+}
+
+.card-front, .card-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    backface-visibility: hidden;
+}
+
+.card-front {
+    background: #3498db;
+    color: white;
+}
+
+.card-back {
+    background: #2ecc71;
+    transform: rotateY(180deg);
+}
+
+.card:hover .card-inner {
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+button {
+    padding: 10px 20px;
+    margin: 10px;
+    cursor: pointer;
+}
+</style>
+
+</head>
+<body>
+
+<h1>🧠 Memory Card Game</h1>
+
+<div class="game-info">
+    Moves: <span id="moves">0</span>
+</div>
+
+<button onclick="resetGame()">Reset Game</button>
+
+<main class="grid" id="gameBoard"></main>
+
+<script>
+const symbols = ["🍎","🍌","🍇","🍉"];
+let cards = [];
+let flippedCards = [];
+let moves = 0;
+
+// shuffle
+function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+}
+
+// tạo game
+function initGame() {
+    const gameBoard = document.getElementById("gameBoard");
+    gameBoard.innerHTML = "";
+
+    cards = shuffle([...symbols, ...symbols]);
+
+    cards.forEach(symbol => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+
+        card.innerHTML = `
+            <div class="card-inner">
+                <div class="card-front">?</div>
+                <div class="card-back">${symbol}</div>
+            </div>
+        `;
+
+        card.addEventListener("click", () => flipCard(card, symbol));
+        gameBoard.appendChild(card);
+    });
+}
+
+// lật thẻ
+function flipCard(card, symbol) {
+    if (card.classList.contains("flip") || flippedCards.length === 2) return;
+
+    card.classList.add("flip");
+    flippedCards.push({card, symbol});
+
+    if (flippedCards.length === 2) {
+        moves++;
+        document.getElementById("moves").innerText = moves;
+
+        checkMatch();
+    }
+}
+
+// kiểm tra
+function checkMatch() {
+    const [first, second] = flippedCards;
+
+    if (first.symbol === second.symbol) {
+        flippedCards = [];
+
+        // kiểm tra thắng
+        const allFlipped = document.querySelectorAll(".card.flip").length;
+        if (allFlipped === cards.length) {
+            setTimeout(() => alert("🎉 Bạn đã thắng!"), 300);
+        }
+    } else {
+        setTimeout(() => {
+            first.card.classList.remove("flip");
+            second.card.classList.remove("flip");
+            flippedCards = [];
+        }, 800);
+    }
+}
+
+// reset
+function resetGame() {
+    moves = 0;
+    document.getElementById("moves").innerText = moves;
+    flippedCards = [];
+    initGame();
+}
+
+// chạy game
+initGame();
+</script>
+
+</body>
+</html>
